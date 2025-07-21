@@ -5,6 +5,8 @@ import CreateRoom from "./pages/CreateRoom.tsx";
 import Login from "./pages/Login.tsx";
 import SignUp from "./pages/SignUp.tsx";
 import FileTransferPage from "./pages/FileTransferPage.tsx";
+import Profile from "./pages/UserProfile.tsx";
+import Forgot from "./pages/ForgotPassword.tsx";
 const App = () => {
   return (
     <BrowserRouter>
@@ -15,6 +17,8 @@ const App = () => {
       <Route path="/scan" element={<ScanQR />} />
       <Route path="/create-room" element={<CreateRoom />} />
       <Route path="/transfer" element={<FileTransferPage />} />
+      <Route path="/profile" element={<Profile/>} />
+      <Route path="/forgot" element={<Forgot/>}/>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
     </Routes>
     </BrowserRouter>

@@ -1,11 +1,9 @@
-
 // dataChannel.ts
-
-
-const CHUNK_SIZE = 64 * 1024; // 64KB chunks
+const CHUNK_SIZE = 16 * 1024; // Reduced to 16KB for better flow control
+const MAX_BUFFER_THRESHOLD = 1024 * 1024; // 1MB buffer threshold
 
 /**
- * Sends a file in chunks over a given RTCDataChannel.
+ * Sends a file in chunks over a given RTCDataChannel with proper backpressure control.
  * It also sends metadata (name, type, size) with the first chunk
  * and a 'done' signal with the last chunk.
  *
@@ -24,67 +22,153 @@ export function sendFileInChunks(
 ) {
   let offset = 0;
   let isFirstChunk = true;
+  let isCancelled = false;
 
-  const sendChunk = () => {
-    // If the channel is not open, stop sending and report error.
-    if (channel.readyState !== 'open') {
-      console.error('Data channel not open, stopping file transfer.');
-      onError(new Error('Data channel not open.'));
+  const sendChunk = async () => {
+    // If cancelled or channel is not open, stop sending
+    if (isCancelled || channel.readyState !== 'open') {
+      console.error('Data channel not open or transfer cancelled, stopping file transfer.');
+      onError(new Error('Data channel not open or transfer cancelled.'));
       return;
     }
 
-    const slice = file.slice(offset, offset + CHUNK_SIZE);
-    const reader = new FileReader();
+    // Check buffered amount and wait if too high
+    await waitForBufferSpace(channel, MAX_BUFFER_THRESHOLD);
 
-    reader.onload = () => {
-      try {
-        const chunkData = reader.result as ArrayBuffer;
+    if (isCancelled) return; // Check again after waiting
 
-        // Send metadata with the first chunk
-        if (isFirstChunk) {
-          const metadata = {
-            fileName: file.name,
-            fileType: file.type,
-            fileSize: file.size,
-            isFirstChunk: true
-          };
-          // Send metadata as a JSON string
-          channel.send(JSON.stringify(metadata));
-          isFirstChunk = false;
-        }
-
-        // Send the actual file chunk
-        channel.send(chunkData);
-        offset += chunkData.byteLength; // Use actual byteLength for accurate offset
-
-        const progress = Math.min(100, Math.round((offset / file.size) * 100));
-        onProgress(progress);
-
-        if (offset < file.size) {
-          // Send next chunk with a small delay to prevent buffer overflow
-          // This is a simple flow control; for very large files, a more sophisticated
-          // backpressure mechanism might be needed (e.g., checking channel.bufferedAmount)
-          setTimeout(sendChunk, 0);
-        } else {
-          // All chunks sent, send completion signal
-          channel.send(JSON.stringify({ done: true, fileName: file.name, fileType: file.type, fileSize: file.size }));
-          console.log(`File "${file.name}" sent completely.`);
-          onDone(); // Signal completion
-        }
-      } catch (e) {
-        console.error('Error sending chunk or processing data:', e);
-        onError(e instanceof Error ? e : new Error('Unknown error during chunk sending.'));
+    try {
+      const slice = file.slice(offset, offset + CHUNK_SIZE);
+      const chunkData = await readFileSlice(slice);
+      
+      // Send metadata with the first chunk
+      if (isFirstChunk) {
+        const metadata = {
+          fileName: file.name,
+          fileType: file.type,
+          fileSize: file.size,
+          isFirstChunk: true
+        };
+        
+        // Wait for buffer space before sending metadata
+        await waitForBufferSpace(channel, MAX_BUFFER_THRESHOLD);
+        if (isCancelled) return;
+        
+        channel.send(JSON.stringify(metadata));
+        console.log(`Started sending file: ${file.name} (${file.size} bytes)`);
+        isFirstChunk = false;
       }
-    };
 
-    reader.onerror = (error) => {
-      console.error('Error reading file chunk:', error);
-      onError(new Error('Error reading file chunk.'));
-    };
+      // Wait for buffer space before sending chunk
+      await waitForBufferSpace(channel, MAX_BUFFER_THRESHOLD);
+      if (isCancelled) return;
 
-    reader.readAsArrayBuffer(slice);
+      // Send the actual file chunk
+      channel.send(chunkData);
+      offset += chunkData.byteLength;
+      
+      const progress = Math.min(100, Math.round((offset / file.size) * 100));
+      onProgress(progress);
+
+      if (offset < file.size) {
+        // Schedule next chunk
+        setTimeout(sendChunk, 0);
+      } else {
+        // All chunks sent, send completion signal
+        await waitForBufferSpace(channel, MAX_BUFFER_THRESHOLD);
+        if (!isCancelled) {
+          channel.send(JSON.stringify({ 
+            done: true, 
+            fileName: file.name, 
+            fileType: file.type, 
+            fileSize: file.size 
+          }));
+          console.log(`File "${file.name}" sent completely.`);
+          onDone();
+        }
+      }
+    } catch (e) {
+      console.error('Error sending chunk or processing data:', e);
+      onError(e instanceof Error ? e : new Error('Unknown error during chunk sending.'));
+    }
   };
 
-  console.log(`Starting to send file: ${file.name} (${file.size} bytes)`);
+  // Start the transfer
   sendChunk();
+
+  // Return a function to cancel the transfer
+  return () => {
+    isCancelled = true;
+  };
+}
+
+/**
+ * Waits for the data channel buffer to have enough space
+ */
+function waitForBufferSpace(channel: RTCDataChannel, maxBuffer: number): Promise<void> {
+  return new Promise((resolve) => {
+    const checkBuffer = () => {
+      if (channel.readyState !== 'open') {
+        resolve(); // Exit if channel closed
+        return;
+      }
+      
+      if (channel.bufferedAmount <= maxBuffer) {
+        resolve();
+      } else {
+        // Log buffer status for debugging
+        console.log(`Buffer full (${channel.bufferedAmount} bytes), waiting...`);
+        setTimeout(checkBuffer, 10); // Check every 10ms
+      }
+    };
+    checkBuffer();
+  });
+}
+
+/**
+ * Reads a file slice as ArrayBuffer using Promise
+ */
+function readFileSlice(slice: Blob): Promise<ArrayBuffer> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as ArrayBuffer);
+    reader.onerror = () => reject(new Error('Error reading file chunk'));
+    reader.readAsArrayBuffer(slice);
+  });
+}
+
+/**
+ * Enhanced version with retry logic and better error handling
+ */
+export function sendFileInChunksWithRetry(
+  file: File,
+  channel: RTCDataChannel,
+  onProgress: (progress: number) => void,
+  onDone: () => void,
+  onError: (error: Error) => void,
+  maxRetries: number = 3
+) {
+  let retryCount = 0;
+  
+  const attemptSend = () => {
+    const cancel = sendFileInChunks(
+      file,
+      channel,
+      onProgress,
+      onDone,
+      (error) => {
+        if (retryCount < maxRetries) {
+          retryCount++;
+          console.log(`Transfer failed, retrying... (${retryCount}/${maxRetries})`);
+          setTimeout(attemptSend, 1000 * retryCount); // Exponential backoff
+        } else {
+          onError(new Error(`Transfer failed after ${maxRetries} retries: ${error.message}`));
+        }
+      }
+    );
+    
+    return cancel;
+  };
+  
+  return attemptSend();
 }

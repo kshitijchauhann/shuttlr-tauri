@@ -1,9 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import SouthIcon from '@mui/icons-material/South';
 import NorthIcon from '@mui/icons-material/North';
+import LogoutIcon from '@mui/icons-material/Logout';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import Avatar from '@mui/material/Avatar';
+import IconButton from '@mui/material/IconButton';
 import Logo from "../assets/double-black.svg";
 import { useNavigate } from 'react-router-dom';
 
@@ -23,6 +26,12 @@ const MobileDashboard = () => {
     }
   };
 
+  const handleLogout = () => {
+    // Example: clear user session or token
+    localStorage.removeItem("authToken");
+    navigate("/");
+  };
+
   useEffect(() => {
     return () => {
       if (fileURL) URL.revokeObjectURL(fileURL);
@@ -30,9 +39,20 @@ const MobileDashboard = () => {
   }, [fileURL]);
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", minHeight: "100vh", p: 2 }}>
+      
+      {/* Top Bar with Avatar and Logout */}
+      <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Avatar sx={{ bgcolor: '#fbbb52' }}>U</Avatar>
+        <IconButton onClick={handleLogout}>
+          <LogoutIcon />
+        </IconButton>
+      </Box>
+
+      {/* Logo */}
       <img src={Logo} width="360px" style={{ margin: '30px' }} />
 
+      {/* Navigation Buttons */}
       <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 4, m: 3 }}>
         <Button
           variant="contained"
@@ -77,7 +97,7 @@ const MobileDashboard = () => {
           <Box sx={{ maxWidth: '90vw', maxHeight: '60vh' }}>
             <img src={fileURL} alt="Preview" style={{ width: '100%', height: 'auto' }} />
           </Box>
-          <Button onClick={() => navigate("/qr")} sx={{backgroundColor: '#fbbb52', color:"white"}}>Send</Button>
+          <Button onClick={() => navigate("/qr")} sx={{ backgroundColor: '#fbbb52', color: "white", mt: 1 }}>Send</Button>
         </Box>
       )}
     </Box>
