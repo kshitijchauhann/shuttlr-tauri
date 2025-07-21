@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate, Navigate } from 'react-router-dom';
+import useAuthStore from '../store/authStore';
 import SouthIcon from '@mui/icons-material/South';
 import NorthIcon from '@mui/icons-material/North';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -7,13 +9,14 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Avatar from '@mui/material/Avatar';
 import IconButton from '@mui/material/IconButton';
+import CircularProgress from '@mui/material/CircularProgress';
 import Logo from "../assets/double-black.svg";
-import { useNavigate } from 'react-router-dom';
 
 const MobileDashboard = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileURL, setFileURL] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string>("");
+  const { user, isLoggedIn, isLoading, logout } = useAuthStore();
   const navigate = useNavigate();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -26,10 +29,20 @@ const MobileDashboard = () => {
     }
   };
 
-  const handleLogout = () => {
-    // Example: clear user session or token
-    localStorage.removeItem("authToken");
-    navigate("/");
+  useEffect(() => {
+    // Redirect to login if not authenticated
+    if (!isLoading && !isLoggedIn) {
+      navigate('/login');
+    }
+  }, [isLoggedIn, isLoading, navigate]);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Failed to log out:', error);
+    }
   };
 
   useEffect(() => {
@@ -38,12 +51,38 @@ const MobileDashboard = () => {
     };
   }, [fileURL]);
 
+  if (isLoading) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh' 
+      }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!isLoggedIn || !user) {
+    return <Navigate to="/login" replace />;
+  }
+
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", minHeight: "100vh", p: 2 }}>
+    <Box sx={{ 
+      display: "flex", 
+      flexDirection: "column", 
+      alignItems: "center", 
+      justifyContent: "flex-start", 
+      minHeight: "100vh", 
+      p: 2 
+    }}>
       
       {/* Top Bar with Avatar and Logout */}
       <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Avatar sx={{ bgcolor: '#fbbb52' }}>U</Avatar>
+        <Avatar sx={{ bgcolor: '#fbbb52' }}>
+          {user.userName ? user.userName.charAt(0).toUpperCase() : 'U'}
+        </Avatar>
         <IconButton onClick={handleLogout}>
           <LogoutIcon />
         </IconButton>
