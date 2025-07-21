@@ -17,13 +17,13 @@ import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import Logo from '../assets/double-black.svg';
 
 const Profile = () => {
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       setSelectedImage(URL.createObjectURL(file)); // Preview image
-      console.log("Selected file:", file.name);
+      console.log('Selected file:', file.name);
     }
   };
 
@@ -93,7 +93,7 @@ const Profile = () => {
           }
         >
           <Avatar
-            src={selectedImage}
+            src={selectedImage ?? undefined}
             sx={{
               height: 120,
               width: 120,
@@ -137,9 +137,9 @@ const Profile = () => {
           <LockOutlineIcon sx={{ mr: 1 }} />
           Change Password
         </Typography>
-        <TextField id="current-password" label="Current Password" variant="filled" />
-        <TextField id="new-password" label="New Password" variant="filled" />
-        <TextField id="confirm-password" label="Confirm Password" variant="filled" />
+        <TextField id="current-password" label="Current Password" variant="filled" type="password" />
+        <TextField id="new-password" label="New Password" variant="filled" type="password" />
+        <TextField id="confirm-password" label="Confirm Password" variant="filled" type="password" />
         <Button variant="contained">Change Password</Button>
       </Card>
     </Box>
