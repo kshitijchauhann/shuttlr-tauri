@@ -58,7 +58,7 @@ const MobileDashboard = () => {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          height: "100vh",
+          height: "90vh",
         }}
       >
         <CircularProgress />
