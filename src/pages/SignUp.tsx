@@ -120,7 +120,7 @@ const SignUp = () => {
             boxShadow: 5,
           }}
         >
-          <img src={Logo} width="350px" style={{ marginBottom: "50px" }} />
+          <img src={Logo} width="320px" style={{ marginBottom: "50px" }} />
 
           <Box sx={{ width: "100%", maxWidth: 400 }}>
             <TextField

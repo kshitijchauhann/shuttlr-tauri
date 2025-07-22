@@ -94,7 +94,7 @@ const Login = () => {
           }}
         >
           {/* Logo */}
-          <img src={Logo} width="350px" style={{ marginBottom: "50px" }} />
+          <img src={Logo} width="320px" style={{ marginBottom: "50px" }} />
 
           {/* Form */}
           <Box sx={{ width: "100%", maxWidth: 400 }}>
