@@ -143,6 +143,9 @@ const SignUp = () => {
                 "& .MuiInputLabel-root": {
                   color: "black",
                 },
+                "& .MuiInputLabel-root.Mui-focused": {
+                  color: "#ffb570",
+                },
                 mb: 2,
               }}
               name="name"
@@ -172,6 +175,9 @@ const SignUp = () => {
                 },
                 "& .MuiInputLabel-root": {
                   color: "black",
+                },
+                "& .MuiInputLabel-root.Mui-focused": {
+                  color: "#ffb570",
                 },
                 mb: 2,
               }}
@@ -216,6 +222,9 @@ const SignUp = () => {
                 },
                 "& .MuiInputLabel-root": {
                   color: "black",
+                },
+                "& .MuiInputLabel-root.Mui-focused": {
+                  color: "#ffb570",
                 },
                 mb: 2,
               }}
@@ -266,6 +275,9 @@ const SignUp = () => {
                 },
                 "& .MuiInputLabel-root": {
                   color: "black",
+                },
+                "& .MuiInputLabel-root.Mui-focused": {
+                  color: "#ffb570",
                 },
                 mb: 2,
               }}

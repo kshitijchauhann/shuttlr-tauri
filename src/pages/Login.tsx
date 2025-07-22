@@ -123,6 +123,9 @@ const Login = () => {
                 "& .MuiInputLabel-root": {
                   color: "black",
                 },
+                "& .MuiInputLabel-root.Mui-focused": {
+                  color: "#ffb570",
+                },
                 mb: 2,
               }}
               value={formData.email}
@@ -160,6 +163,9 @@ const Login = () => {
                 },
                 "& .MuiInputLabel-root": {
                   color: "black",
+                },
+                "& .MuiInputLabel-root.Mui-focused": {
+                  color: "#ffb570",
                 },
                 mb: 2,
               }}

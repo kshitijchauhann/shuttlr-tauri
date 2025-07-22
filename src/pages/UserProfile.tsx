@@ -376,6 +376,9 @@ const Profile = () => {
                 "& .MuiInputLabel-root": {
                   color: "black",
                 },
+                "& .MuiInputLabel-root.Mui-focused": {
+                  color: "#ffb570",
+                },
               }}
               id="current-password"
               label="Current Password"
@@ -419,6 +422,9 @@ const Profile = () => {
                 "& .MuiInputLabel-root": {
                   color: "black",
                 },
+                "& .MuiInputLabel-root.Mui-focused": {
+                  color: "#ffb570",
+                },
               }}
               id="new-password"
               label="New Password"
@@ -461,6 +467,9 @@ const Profile = () => {
                 },
                 "& .MuiInputLabel-root": {
                   color: "black",
+                },
+                "& .MuiInputLabel-root.Mui-focused": {
+                  color: "#ffb570",
                 },
               }}
               id="confirm-password"
