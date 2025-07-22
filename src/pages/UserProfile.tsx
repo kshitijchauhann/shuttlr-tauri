@@ -10,6 +10,9 @@ import {
   IconButton,
   InputAdornment,
   Tab,
+  Snackbar,
+  Alert,
+  CircularProgress,
 } from "@mui/material";
 import {
   Person as PersonIcon,
@@ -38,6 +41,13 @@ const Profile = () => {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  const [loading, setLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success" as "success" | "error",
+  });
 
   const currentUser = useAuthStore((state) => state.user);
 
@@ -71,14 +81,24 @@ const Profile = () => {
 
   const handleChangePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
-      alert("Please fill in all fields.");
+      setSnackbar({
+        open: true,
+        message: "Please fill in all fields.",
+        severity: "error",
+      });
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      alert("New password and confirmation do not match.");
+      setSnackbar({
+        open: true,
+        message: "New password and confirmation do not match.",
+        severity: "error",
+      });
       return;
     }
+
+    setLoading(true);
 
     try {
       const response = await axios.post(
@@ -91,17 +111,26 @@ const Profile = () => {
       );
 
       if (response.status === 200) {
-        alert("Password updated successfully!");
+        setSnackbar({
+          open: true,
+          message: "Password updated successfully!",
+          severity: "success",
+        });
         setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
       }
     } catch (err: any) {
       console.error("Password change failed:", err);
-      alert(
-        err?.response?.data?.message ||
+      setSnackbar({
+        open: true,
+        message:
+          err?.response?.data?.message ||
           "Failed to change password. Please try again.",
-      );
+        severity: "error",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -406,12 +435,34 @@ const Profile = () => {
               variant="contained"
               sx={{ backgroundColor: "#ffb570", fontWeight: 700 }}
               onClick={handleChangePassword}
+              disabled={loading}
             >
-              Change Password
+              {loading ? (
+                <CircularProgress size={24} sx={{ color: "#fff" }} />
+              ) : (
+                "Change Password"
+              )}
             </Button>
           </Card>
         </TabPanel>
       </TabContext>
+
+      {/* Snackbar for success/error messages */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
