@@ -77,7 +77,7 @@ const MobileDashboard = () => {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "flex-start",
-        minHeight: "100vh",
+        minHeight: "90vh",
         p: 2,
       }}
     >
