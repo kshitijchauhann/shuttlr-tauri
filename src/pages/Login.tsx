@@ -99,13 +99,32 @@ const Login = () => {
           {/* Form */}
           <Box sx={{ width: "100%", maxWidth: 400 }}>
             <TextField
-              color="black"
               name="email"
               label="Enter email"
               type="email"
               variant="outlined"
               fullWidth
-              sx={{ mb: 2 }}
+              sx={{
+                backgroundColor: "#FFF7F2",
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: "black",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "black",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "black",
+                  },
+                },
+                "& .MuiInputBase-input": {
+                  color: "black",
+                },
+                "& .MuiInputLabel-root": {
+                  color: "black",
+                },
+                mb: 2,
+              }}
               value={formData.email}
               onChange={handleChange}
             />
@@ -118,13 +137,32 @@ const Login = () => {
               )}
 
             <TextField
-              color="black"
               name="password"
               label="Enter password"
               type={showPassword ? "text" : "password"}
               variant="outlined"
               fullWidth
-              sx={{ mb: 3 }}
+              sx={{
+                backgroundColor: "#FFF7F2",
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: "black",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "black",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "black",
+                  },
+                },
+                "& .MuiInputBase-input": {
+                  color: "black",
+                },
+                "& .MuiInputLabel-root": {
+                  color: "black",
+                },
+                mb: 2,
+              }}
               value={formData.password}
               onChange={handleChange}
               InputProps={{
@@ -187,4 +225,3 @@ const Login = () => {
 };
 
 export default Login;
-

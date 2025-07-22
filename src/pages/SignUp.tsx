@@ -124,24 +124,62 @@ const SignUp = () => {
 
           <Box sx={{ width: "100%", maxWidth: 400 }}>
             <TextField
-              color="black"
+              sx={{
+                backgroundColor: "#FFF7F2",
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: "black",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "black",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "black",
+                  },
+                },
+                "& .MuiInputBase-input": {
+                  color: "black",
+                },
+                "& .MuiInputLabel-root": {
+                  color: "black",
+                },
+                mb: 2,
+              }}
               name="name"
               label="Enter Name"
               variant="outlined"
               fullWidth
-              sx={{ mb: 2 }}
               value={formData.name}
               onChange={handleChange}
             />
 
             <TextField
-              color="black"
+              sx={{
+                backgroundColor: "#FFF7F2",
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: "black",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "black",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "black",
+                  },
+                },
+                "& .MuiInputBase-input": {
+                  color: "black",
+                },
+                "& .MuiInputLabel-root": {
+                  color: "black",
+                },
+                mb: 2,
+              }}
               name="email"
               label="Enter email"
               type="email"
               variant="outlined"
               fullWidth
-              sx={{ mb: 2 }}
               value={formData.email}
               onChange={handleChange}
             />
@@ -156,12 +194,31 @@ const SignUp = () => {
 
             <TextField
               name="password"
-              color="black"
               label="Enter password"
               type={showPassword ? "text" : "password"}
               variant="outlined"
               fullWidth
-              sx={{ mb: 2 }}
+              sx={{
+                backgroundColor: "#FFF7F2",
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: "black",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "black",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "black",
+                  },
+                },
+                "& .MuiInputBase-input": {
+                  color: "black",
+                },
+                "& .MuiInputLabel-root": {
+                  color: "black",
+                },
+                mb: 2,
+              }}
               value={formData.password}
               onChange={handleChange}
               InputProps={{
@@ -186,13 +243,32 @@ const SignUp = () => {
             />
 
             <TextField
-              color="black"
               name="confirmPassword"
               label="Confirm password"
               type={showPassword ? "text" : "password"}
               variant="outlined"
               fullWidth
-              sx={{ mb: 3 }}
+              sx={{
+                backgroundColor: "#FFF7F2",
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: "black",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "black",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "black",
+                  },
+                },
+                "& .MuiInputBase-input": {
+                  color: "black",
+                },
+                "& .MuiInputLabel-root": {
+                  color: "black",
+                },
+                mb: 2,
+              }}
               value={formData.confirmPassword}
               onChange={handleChange}
               InputProps={{

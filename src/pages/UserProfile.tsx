@@ -51,7 +51,7 @@ const Profile = () => {
 
   const currentUser = useAuthStore((state) => state.user);
 
-  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+  const handleChange = (_event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
   };
 
@@ -357,8 +357,26 @@ const Profile = () => {
 
             <TextField
               fullWidth
-              color="black"
-              sx={{ backgroundColor: "#FFF7F2" }}
+              sx={{
+                backgroundColor: "#FFF7F2",
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: "black",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "black",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "black",
+                  },
+                },
+                "& .MuiInputBase-input": {
+                  color: "black",
+                },
+                "& .MuiInputLabel-root": {
+                  color: "black",
+                },
+              }}
               id="current-password"
               label="Current Password"
               variant="outlined"
@@ -382,8 +400,26 @@ const Profile = () => {
 
             <TextField
               fullWidth
-              color="black"
-              sx={{ backgroundColor: "#FFF7F2" }}
+              sx={{
+                backgroundColor: "#FFF7F2",
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: "black",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "black",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "black",
+                  },
+                },
+                "& .MuiInputBase-input": {
+                  color: "black",
+                },
+                "& .MuiInputLabel-root": {
+                  color: "black",
+                },
+              }}
               id="new-password"
               label="New Password"
               variant="outlined"
@@ -407,8 +443,26 @@ const Profile = () => {
 
             <TextField
               fullWidth
-              color="black"
-              sx={{ backgroundColor: "#FFF7F2" }}
+              sx={{
+                backgroundColor: "#FFF7F2",
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: "black",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "black",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "black",
+                  },
+                },
+                "& .MuiInputBase-input": {
+                  color: "black",
+                },
+                "& .MuiInputLabel-root": {
+                  color: "black",
+                },
+              }}
               id="confirm-password"
               label="Confirm Password"
               variant="outlined"
