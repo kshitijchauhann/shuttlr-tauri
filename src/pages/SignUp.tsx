@@ -25,8 +25,11 @@ const SignUp = () => {
     confirmPassword: "",
   });
 
-  const [open, setOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // State for Snackbar visibility, message, and severity
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState<string | null>(null);
+  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error" | "info" | "warning">("success");
+
 
   const [showPassword, setShowPassword] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
@@ -47,13 +50,14 @@ const SignUp = () => {
     event.preventDefault();
   };
 
+  // Closes the Snackbar
   const handleClose = (
     _event?: React.SyntheticEvent | Event,
     reason?: string,
   ) => {
     if (reason === "clickaway") return;
-    setOpen(false);
-    setError(null);
+    setSnackbarOpen(false);
+    setSnackbarMessage(null); // Clear message on close
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,8 +76,9 @@ const SignUp = () => {
   const handleSubmit = async () => {
     try {
       if (formData.password !== formData.confirmPassword) {
-        setError("Passwords do not match");
-        setOpen(true);
+        setSnackbarMessage("Passwords do not match."); // Set specific error message
+        setSnackbarSeverity("error"); // Set severity to error
+        setSnackbarOpen(true);
         return;
       }
 
@@ -87,14 +92,17 @@ const SignUp = () => {
       );
 
       if (response.status === 201) {
-        setOpen(true);
+        setSnackbarMessage("Signup successful!"); // Set success message
+        setSnackbarSeverity("success"); // Set severity to success
+        setSnackbarOpen(true);
         setTimeout(() => {
           navigate("/login");
         }, 1500);
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || "Signup failed");
-      setOpen(true);
+      setSnackbarMessage(err.response?.data?.message || "Signup failed."); // Set error message
+      setSnackbarSeverity("error"); // Set severity to error
+      setSnackbarOpen(true);
     }
   };
 
@@ -120,7 +128,7 @@ const SignUp = () => {
             boxShadow: 5,
           }}
         >
-          <img src={Logo} width="320px" style={{ marginBottom: "50px" }} />
+          <img src={Logo} width="320px" style={{ marginBottom: "50px" }} alt="Logo" />
 
           <Box sx={{ width: "100%", maxWidth: 400 }}>
             <TextField
@@ -359,13 +367,14 @@ const SignUp = () => {
               SIGNUP
             </Button>
 
-            <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+            {/* Updated Snackbar for consistency and mobile-friendliness */}
+            <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleClose}>
               <Alert
                 onClose={handleClose}
-                severity={error ? "error" : "success"}
-                sx={{ width: "100%" }}
+                severity={snackbarSeverity} // Use dynamic severity
+                sx={{ width: "100%" }} // Ensure full width on mobile
               >
-                {error || "Signup successful"}
+                {snackbarMessage} {/* Use dynamic message */}
               </Alert>
             </Snackbar>
 

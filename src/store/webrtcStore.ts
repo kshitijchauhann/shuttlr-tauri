@@ -30,10 +30,13 @@ interface WebRTCState {
   user: User | null;
   peer: User | null;
   
+  // To track ongoing transfers
+  activeFileTransfers: Map<string, () => void>; 
+  
   // Error handling
   error: string | null;
   
-  // File transfer handlers (updated)
+  // File transfer handlers
   onFileSendProgress: FileSendProgressHandler | null;
   onFileReceiveProgress: FileReceiveProgressHandler | null;
   onFileComplete: FileCompleteHandler | null;
@@ -45,10 +48,12 @@ interface WebRTCState {
   initialize: (roomName: string, user: User, isCaller?: boolean) => void;
   sendOffer: () => Promise<void>;
   disconnect: () => void;
-  sendFile: (file: File, onProgress: FileSendProgressHandler) => Promise<void>; // Updated signature to return Promise
+  sendFile: (file: File, onProgress: FileSendProgressHandler) => Promise<void>;
   setFileSendProgressHandler: (handler: FileSendProgressHandler) => void;
   setFileReceiveProgressHandler: (handler: FileReceiveProgressHandler) => void;
   setFileCompleteHandler: (handler: FileCompleteHandler) => void;
+  cancelFileTransfer: (transferId: string) => void;
+  cancelAllFileTransfers: () => void;
   
   // Internal methods
   _setupDataChannel: (channel: RTCDataChannel) => void;
@@ -76,7 +81,8 @@ const useWebRTCStore = create<WebRTCState>((set, get) => ({
   onFileSendProgress: null,
   onFileReceiveProgress: null,
   onFileComplete: null,
-  _iceCandidateQueue: [], // Initialize the queue
+  _iceCandidateQueue: [],
+  activeFileTransfers: new Map(),
 
   // Initialize WebRTC connection
   initialize: (roomName: string, user: User, isCaller = false) => {
@@ -93,7 +99,7 @@ const useWebRTCStore = create<WebRTCState>((set, get) => ({
       isConnected: false,
       error: null,
       isSocketOpen: false,
-      _iceCandidateQueue: [], // Ensure queue is reset on new connection
+      _iceCandidateQueue: [],
     });
 
     try {
@@ -124,9 +130,15 @@ const useWebRTCStore = create<WebRTCState>((set, get) => ({
           console.log('[WebRTC] Received message:', message);
           
           switch (message.type) {
-            case 'offer': await get()._handleOffer(message); break;
-            case 'answer': await get()._handleAnswer(message); break;
-            case 'ice-candidate': await get()._handleICECandidate(message.candidate); break;
+            case 'offer': 
+              await get()._handleOffer(message); 
+              break;
+            case 'answer': 
+              await get()._handleAnswer(message); 
+              break;
+            case 'ice-candidate': 
+              await get()._handleICECandidate(message.candidate); 
+              break;
             case 'user-joined':
               set({ peer: message.user });
               if (get().isCaller) {
@@ -232,7 +244,7 @@ const useWebRTCStore = create<WebRTCState>((set, get) => ({
       await peerConnection.setRemoteDescription(new RTCSessionDescription(message.sdp));
 
       _iceCandidateQueue.forEach(candidate => peerConnection.addIceCandidate(candidate));
-      set({ _iceCandidateQueue: [] }); // Clear the queue
+      set({ _iceCandidateQueue: [] });
       
     } catch (error) {
       console.error('[WebRTC] Error handling answer:', error);
@@ -281,46 +293,105 @@ const useWebRTCStore = create<WebRTCState>((set, get) => ({
     }
   },
   
-  // Updated method to initiate file sending using the dataChannel.ts utility
+  // File sending method using the dataChannel utility
   sendFile: (file: File, onProgress: FileSendProgressHandler): Promise<void> => {
     return new Promise((resolve, reject) => {
-      const { dataChannel } = get();
-      if (dataChannel && dataChannel.readyState === 'open') {
-        // Create a wrapper function to convert the progress callback signature
-        const progressWrapper = (progress: number) => {
-          onProgress(file.name, progress, Math.floor((progress / 100) * file.size), file.size);
-        };
-        
-        sendFileInChunks(
-          file,
-          dataChannel,
-          progressWrapper, // Pass the wrapped progress callback
-          () => {
-            console.log(`[WebRTC Store] File "${file.name}" sent successfully.`);
-            resolve(); // Resolve the promise on completion
-          },
-          (error) => {
-            console.error(`[WebRTC Store] Error sending file "${file.name}":`, error);
-            set({ error: `Error sending file: ${file.name}. ${error.message}` });
-            reject(error); // Reject the promise on error
-          }
-        );
-      } else {
-        const error = new Error('Data channel is not open or ready');
-        console.error(`[WebRTC Store] ${error.message}`);
+      const { dataChannel, isConnected } = get();
+      
+      if (!isConnected) {
+        const error = new Error('WebRTC connection is not established');
         set({ error: error.message });
         reject(error);
+        return;
       }
+
+      if (!dataChannel || dataChannel.readyState !== 'open') {
+        const error = new Error(`Data channel not ready. State: ${dataChannel?.readyState || 'null'}`);
+        set({ error: error.message });
+        reject(error);
+        return;
+      }
+      
+      console.log(`[WebRTC Store] Starting file transfer for "${file.name}" (${file.size} bytes)`);
+      
+      const progressWrapper = (progress: number) => {
+        onProgress(file.name, progress, Math.floor((progress / 100) * file.size), file.size);
+      };
+      
+      // Start the transfer and get the cancel function
+      const cancelTransfer = sendFileInChunks(
+        file,
+        dataChannel,
+        progressWrapper,
+        () => {
+          // Remove from active transfers on completion
+          const { activeFileTransfers } = get();
+          const transferId = Array.from(activeFileTransfers.entries())
+            .find(([_, cancel]) => cancel === cancelTransfer)?.[0];
+          if (transferId) {
+            activeFileTransfers.delete(transferId);
+            set({ activeFileTransfers: new Map(activeFileTransfers) });
+          }
+          
+          console.log(`[WebRTC Store] File "${file.name}" sent successfully.`);
+          resolve();
+        },
+        (error) => {
+          // Remove from active transfers on error
+          const { activeFileTransfers } = get();
+          const transferId = Array.from(activeFileTransfers.entries())
+            .find(([_, cancel]) => cancel === cancelTransfer)?.[0];
+          if (transferId) {
+            activeFileTransfers.delete(transferId);
+            set({ activeFileTransfers: new Map(activeFileTransfers) });
+          }
+          
+          console.error(`[WebRTC Store] Error sending file "${file.name}":`, error);
+          set({ error: `Error sending file: ${file.name}. ${error.message}` });
+          reject(error);
+        }
+      );
+      
+      // Store the cancel function with a unique ID
+      const transferId = `${file.name}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const { activeFileTransfers } = get();
+      activeFileTransfers.set(transferId, cancelTransfer);
+      set({ activeFileTransfers: new Map(activeFileTransfers) });
     });
   },
   
-  // Updated handler setters
+  cancelFileTransfer: (transferId: string) => {
+    const { activeFileTransfers } = get();
+    const cancelFn = activeFileTransfers.get(transferId);
+    if (cancelFn) {
+      console.log(`[WebRTC Store] Cancelling file transfer: ${transferId}`);
+      cancelFn();
+      activeFileTransfers.delete(transferId);
+      set({ activeFileTransfers: new Map(activeFileTransfers) });
+    }
+  },
+  
+  cancelAllFileTransfers: () => {
+    const { activeFileTransfers } = get();
+    console.log(`[WebRTC Store] Cancelling ${activeFileTransfers.size} active transfers`);
+    
+    activeFileTransfers.forEach((cancelFn, transferId) => {
+      console.log(`[WebRTC Store] Cancelling transfer: ${transferId}`);
+      cancelFn();
+    });
+    
+    set({ activeFileTransfers: new Map() });
+  },
+  
+  // Handler setters
   setFileSendProgressHandler: (handler: FileSendProgressHandler) => {
     set({ onFileSendProgress: handler });
   },
+  
   setFileReceiveProgressHandler: (handler: FileReceiveProgressHandler) => {
     set({ onFileReceiveProgress: handler });
   },
+  
   setFileCompleteHandler: (handler: FileCompleteHandler) => {
     set({ onFileComplete: handler });
   },
@@ -388,7 +459,10 @@ const useWebRTCStore = create<WebRTCState>((set, get) => ({
   _cleanup: () => {
     const { socket, peerConnection, dataChannel } = get();
     
-    // Clean up data channel first
+    // Cancel all active file transfers first
+    get().cancelAllFileTransfers();
+    
+    // Clean up data channel
     if (dataChannel) {
       try {
         // Remove all event listeners to prevent memory leaks
@@ -420,7 +494,11 @@ const useWebRTCStore = create<WebRTCState>((set, get) => ({
         
         // Close all transceivers
         peerConnection.getTransceivers().forEach(transceiver => {
-          try { transceiver.stop && transceiver.stop(); } catch (e) {}
+          try { 
+            if (transceiver.stop) transceiver.stop(); 
+          } catch (e) {
+            console.warn('[WebRTC] Error stopping transceiver:', e);
+          }
         });
         
         // Close the connection
@@ -463,7 +541,8 @@ const useWebRTCStore = create<WebRTCState>((set, get) => ({
       _iceCandidateQueue: [],
       onFileSendProgress: null,
       onFileReceiveProgress: null,
-      onFileComplete: null
+      onFileComplete: null,
+      activeFileTransfers: new Map()
     });
   }
 }));

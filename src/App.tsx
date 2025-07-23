@@ -15,25 +15,17 @@ import SignUp from "./pages/SignUp.tsx";
 import FileTransferPage from "./pages/FileTransferPage.tsx";
 import Profile from "./pages/UserProfile.tsx";
 
-// Protected route component
+// Protected route component - removed isLoading check
 const ProtectedRoute = () => {
-  const { isLoggedIn, isLoading } = useAuthStore();
-
-  if (isLoading) {
-    return <div>Loading...</div>; // Or a loading spinner
-  }
-
+  const { isLoggedIn } = useAuthStore();
+  // No loading state here, assume authStore handles initial loading internally
   return isLoggedIn ? <Outlet /> : <Navigate to="/login" replace />;
 };
 
-// Public route component that redirects to dashboard if logged in
+// Public route component that redirects to dashboard if logged in - removed isLoading check
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isLoggedIn, isLoading } = useAuthStore();
-
-  if (isLoading) {
-    return <div>Loading...</div>; // Or a loading spinner
-  }
-
+  const { isLoggedIn } = useAuthStore();
+  // No loading state here
   return isLoggedIn ? <Navigate to="/dashboard" replace /> : children;
 };
 

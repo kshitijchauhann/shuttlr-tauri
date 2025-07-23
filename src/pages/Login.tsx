@@ -6,9 +6,11 @@ import TextField from "@mui/material/TextField";
 import Container from "@mui/material/Container";
 import IconButton from "@mui/material/IconButton";
 import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
 import InputAdornment from "@mui/material/InputAdornment";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import CircularProgress from '@mui/material/CircularProgress'; // Import CircularProgress
 import { useNavigate } from "react-router-dom";
 import React, { useState } from "react";
 import type { User } from "../store/authStore";
@@ -22,7 +24,11 @@ const Login = () => {
   });
 
   const [showPassword, setShowPassword] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState<string | null>(null);
+  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error" | "info" | "warning">("success");
+  const [isLoggingIn, setIsLoggingIn] = useState(false); // New state for loading on button
+
   const navigate = useNavigate();
 
   const { login, setUser } = useAuthStore();
@@ -40,11 +46,12 @@ const Login = () => {
   };
 
   const handleClose = (
-    _event: React.SyntheticEvent | Event,
+    _event?: React.SyntheticEvent | Event,
     reason?: string,
   ) => {
     if (reason === "clickaway") return;
-    setOpen(false);
+    setSnackbarOpen(false);
+    setSnackbarMessage(null);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,18 +63,30 @@ const Login = () => {
   };
 
   const handleSubmit = async () => {
+    setIsLoggingIn(true); // Start loading
     try {
       const result = await login(formData);
 
       if (result.success) {
         setUser(result.user as User | null);
-        setOpen(true);
+        setSnackbarMessage("Login successful!");
+        setSnackbarSeverity("success");
+        setSnackbarOpen(true);
         setTimeout(() => {
           navigate("/dashboard");
         }, 1500);
+      } else {
+        setSnackbarMessage("Login failed. Invalid email or password.");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
       }
     } catch (err) {
       console.log(err);
+      setSnackbarMessage("An unexpected error occurred during login.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
+    } finally {
+      setIsLoggingIn(false); // Stop loading regardless of success or failure
     }
   };
 
@@ -94,7 +113,7 @@ const Login = () => {
           }}
         >
           {/* Logo */}
-          <img src={Logo} width="320px" style={{ marginBottom: "50px" }} />
+          <img src={Logo} width="320px" style={{ marginBottom: "50px" }} alt="Logo" />
 
           {/* Form */}
           <Box sx={{ width: "100%", maxWidth: 400 }}>
@@ -130,6 +149,7 @@ const Login = () => {
               }}
               value={formData.email}
               onChange={handleChange}
+              disabled={isLoggingIn} // Disable input during loading
             />
             {formData.email &&
               (!formData.email.includes("@") ||
@@ -171,6 +191,7 @@ const Login = () => {
               }}
               value={formData.password}
               onChange={handleChange}
+              disabled={isLoggingIn} // Disable input during loading
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
@@ -179,6 +200,7 @@ const Login = () => {
                       onMouseDown={handleMouseDownPassword}
                       onMouseUp={handleMouseUpPassword}
                       edge="end"
+                      disabled={isLoggingIn} // Disable icon during loading
                     >
                       {showPassword ? <Visibility /> : <VisibilityOff />}
                     </IconButton>
@@ -196,16 +218,24 @@ const Login = () => {
                 backgroundColor: "#ffb570",
                 fontWeight: 700,
               }}
+              disabled={isLoggingIn} // Disable button during loading
             >
-              LOGIN
+              {isLoggingIn ? <CircularProgress size={24} color="inherit" /> : "LOGIN"}
             </Button>
 
             <Snackbar
-              open={open}
+              open={snackbarOpen}
               autoHideDuration={6000}
               onClose={handleClose}
-              message="Login successful"
-            />
+            >
+              <Alert
+                onClose={handleClose}
+                severity={snackbarSeverity}
+                sx={{ width: "100%" }}
+              >
+                {snackbarMessage}
+              </Alert>
+            </Snackbar>
 
             <Typography variant="body2" align="center" sx={{ mt: 2 }}>
               Don't have an account?{" "}
@@ -219,6 +249,7 @@ const Login = () => {
                   padding: 0,
                   minWidth: "unset",
                 }}
+                disabled={isLoggingIn} // Disable signup link during loading
               >
                 Sign up
               </Button>
