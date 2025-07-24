@@ -130,7 +130,7 @@ const MobileDashboard = () => {
 
         <Button
           variant="contained"
-          onClick={() => navigate("/scan")}
+          onClick={() => navigate("/join")}
           sx={{
             backgroundColor: "#fbbb52",
             width: "80px",
