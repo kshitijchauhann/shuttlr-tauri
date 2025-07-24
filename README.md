@@ -1,69 +1,138 @@
-# React + TypeScript + Vite
+#  Shuttlr
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Shuttlr** is a peer-to-peer (P2P) file sharing application built using **WebRTC** and **WebSocket**, enabling fast and secure file transfers over the internet. The app runs as a cross-platform desktop application using **Tauri**.
 
-Currently, two official plugins are available:
+## 🌟 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 🔁 **P2P File Sharing** - Direct file transfers between devices
+- 📡 **Real-time Communication** - Uses WebRTC and WebSocket for instant connectivity
+- 💻 **Desktop & Web App** - Built with Tauri for native performance
+- ⚡ **Lightweight & Fast** - Minimal resource usage with maximum speed
+- 🔒 **Secure Transfers** - End-to-end encrypted file sharing
+- 🌐 **No Server Required** - Direct peer-to-peer connections
 
-## Expanding the ESLint configuration
+## 📋 Prerequisites
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Before building Shuttlr, ensure you have the following installed:
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- **Node.js** (v16 or higher) - *For development and building only*
+- **npm** - *For dependency management*
+- **Rust** (latest stable version)
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+## 🛠️ Installation & Build Instructions
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Step 1: Clone the Repository
+
+```bash
+git clone https://github.com/kshitijchauhann/shuttlr-tauri.git
+cd shuttlr-tauri
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Step 2: Install Dependencies
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
+
+### Step 3: Development Mode (Optional)
+
+To run the app in development mode:
+
+```bash
+npm run tauri dev
+```
+
+### Step 4: Build for Production
+
+```bash
+npm run build
+npx tauri build
+```
+
+After building, the executable will be available at:
+```
+src-tauri/target/release/
+```
+
+## 📦 Creating Windows Installer (Optional)
+
+To create a Windows installer for easier distribution:
+
+### Prerequisites
+1. Download and install [NSIS (Nullsoft Scriptable Install System)](https://nsis.sourceforge.io/)
+
+### Steps
+1. Navigate to the NSIS script location:
+   ```
+   src-tauri/target/release/nsis/x64/installer.nsi
+   ```
+
+2. Right-click on `installer.nsi` and select "Compile NSIS Script"
+
+3. The installer will be generated at:
+   ```
+   src-tauri/target/release/nsis/x64/nsis-output/
+   ```
+
+## 🚀 Usage
+
+1. Launch Shuttlr on both devices
+2. One device creates a sharing session
+3. Share the generated code/link with the recipient
+4. The recipient enters the code to establish connection
+5. Select files and start transferring!
+
+## 🔧 Technology Stack
+
+- **Frontend**: HTML, CSS, TypeScript
+- **Backend**: Tauri (Rust)
+- **P2P Communication**: WebRTC
+- **Real-time Messaging**: WebSocket
+- **Build Tool**: Tauri CLI
+- **Development**: Node.js (build-time only)
+
+## 📱 Supported Platforms
+
+- ✅ Windows
+- ✅ Web
+
+## 🤝 Contributing
+
+Contributions are welcome! Here's how you can help:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Development Guidelines
+
+- Follow the existing code style
+- Write clear commit messages
+- Test your changes thoroughly
+- Update documentation as needed
+
+## 🐛 Issues & Support
+
+If you encounter any issues or have questions:
+
+1. Check the [Issues](https://github.com/kshitijchauhann/shuttlr-tauri/issues) page
+2. Create a new issue with detailed information
+3. Include your OS, Node.js version, and error logs
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built with [Tauri](https://tauri.app/) framework
+- Uses [WebRTC](https://webrtc.org/) for peer-to-peer communication
+- Inspired by the need for simple, secure file sharing
+
+---
+
+**Made with ❤️ by [Kshitij Chauhan](https://github.com/kshitijchauhann)**
+
+⭐ If you find this project useful, please consider giving it a star!

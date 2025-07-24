@@ -8,7 +8,7 @@ import Login from "./pages/Login.tsx";
 import SignUp from "./pages/SignUp.tsx";
 import FileTransferPage from "./pages/FileTransferPage.tsx";
 import Profile from "./pages/UserProfile.tsx";
-import Layout from "./components/Layout.tsx"; // Import the new Layout component
+import Layout from "./components/Layout.tsx"; 
 
 // Protected route component
 const ProtectedRoute = () => {
